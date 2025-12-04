@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { statsAPI } from '../api/stats';
@@ -11,12 +11,21 @@ const Dashboard = () => {
   const [taskStats, setTaskStats] = useState(null);
   const [statsLoading, setStatsLoading] = useState(true);
   const [activityStats, setActivityStats] = useState(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0); // Used to trigger TaskList refresh
   const { user, logout } = useAuth();
 
   useEffect(() => {
+    // Clear any stale data on component mount
+    console.log('Dashboard: Component mounted, clearing stale data');
+    setTaskStats(null);
+    setActivityStats(null);
+    setStatsLoading(true);
+    setShowTaskForm(false);
+    setEditingTask(null);
+
     const fetchStats = async () => {
       try {
-        console.log('Dashboard: Fetching stats...');
+        console.log('Dashboard: Fetching fresh stats...');
         setStatsLoading(true);
         const [taskStatsResponse, activityStatsResponse] = await Promise.all([
           statsAPI.getTaskStats(),
@@ -26,7 +35,7 @@ const Dashboard = () => {
         console.log('Dashboard: Activity stats response:', activityStatsResponse);
         setTaskStats(taskStatsResponse);
         setActivityStats(activityStatsResponse);
-        console.log('Dashboard: Stats state updated');
+        console.log('Dashboard: Fresh stats loaded');
       } catch (error) {
         console.error('Dashboard: Error fetching stats:', error);
         setTaskStats(null);
@@ -39,6 +48,26 @@ const Dashboard = () => {
     fetchStats();
   }, []);
 
+  const refreshStats = async () => {
+    console.log('Dashboard: Refreshing stats...');
+    try {
+      setStatsLoading(true);
+      const [taskStatsResponse, activityStatsResponse] = await Promise.all([
+        statsAPI.getTaskStats(),
+        statsAPI.getActivityStats()
+      ]);
+      console.log('Dashboard: Stats refreshed:', taskStatsResponse);
+      setTaskStats(taskStatsResponse);
+      setActivityStats(activityStatsResponse);
+    } catch (error) {
+      console.error('Dashboard: Error refreshing stats:', error);
+      setTaskStats(null);
+      setActivityStats(null);
+    } finally {
+      setStatsLoading(false);
+    }
+  };
+
   const handleCreateTask = () => {
     setEditingTask(null);
     setShowTaskForm(true);
@@ -49,9 +78,25 @@ const Dashboard = () => {
     setShowTaskForm(true);
   };
 
+  // Function to refresh both stats and task list
+  const refreshAllData = async () => {
+    console.log('Dashboard: Refreshing all data...');
+    await refreshStats();
+    // The task change callback will handle task list refresh
+  };
+
+  const handleTaskChange = () => {
+    console.log('Dashboard: Task changed, refreshing data...');
+    refreshAllData();
+  };
+
   const handleCloseForm = () => {
     setShowTaskForm(false);
     setEditingTask(null);
+    console.log('Dashboard: Form closed, refreshing all data');
+    refreshAllData();
+    // Trigger TaskList refresh
+    setRefreshTrigger(prev => prev + 1);
   };
 
   return (
@@ -167,7 +212,7 @@ const Dashboard = () => {
           </div>
 
           {/* Task List */}
-          <TaskList onEditTask={handleEditTask} />
+          <TaskList onEditTask={handleEditTask} onTaskChange={handleTaskChange} refreshTrigger={refreshTrigger} />
 
           {/* Task Form Modal */}
           {showTaskForm && (

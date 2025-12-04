@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { tasksAPI } from '../api/tasks';
 
-const TaskList = ({ onEditTask }) => {
+const TaskList = ({ onEditTask, onTaskChange, refreshTrigger = 0 }) => {
   const [filters, setFilters] = useState({
     status: '',
     priority: '',
@@ -14,20 +14,28 @@ const TaskList = ({ onEditTask }) => {
   const [updatingTaskId, setUpdatingTaskId] = useState(null);
   const [deletingTaskId, setDeletingTaskId] = useState(null);
 
-  useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        const response = await tasksAPI.getTasks(filters);
-        setTasksData(response);
-      } catch (err) {
-        setError(err.response?.data?.message || 'Error fetching tasks');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const fetchTasks = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await tasksAPI.getTasks(filters);
+      setTasksData(response);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error fetching tasks');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  // Refresh tasks when refreshTrigger changes
+  useEffect(() => {
+    if (refreshTrigger > 0) {
+      console.log('TaskList: Triggered refresh by parent, refetching tasks...');
+      fetchTasks();
+    }
+  }, [refreshTrigger]);
+
+  useEffect(() => {
     fetchTasks();
   }, [filters]);
 
@@ -46,6 +54,8 @@ const TaskList = ({ onEditTask }) => {
         // Refetch tasks after deletion
         const response = await tasksAPI.getTasks(filters);
         setTasksData(response);
+        // Notify parent component to refresh stats
+        if (onTaskChange) onTaskChange();
       } catch (err) {
         alert('Error deleting task: ' + (err.response?.data?.message || 'Unknown error'));
       } finally {
@@ -61,6 +71,8 @@ const TaskList = ({ onEditTask }) => {
       // Refetch tasks after update
       const response = await tasksAPI.getTasks(filters);
       setTasksData(response);
+      // Notify parent component to refresh stats
+      if (onTaskChange) onTaskChange();
     } catch (err) {
       alert('Error updating task: ' + (err.response?.data?.message || 'Unknown error'));
     } finally {
