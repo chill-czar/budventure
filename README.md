@@ -1,11 +1,11 @@
-# Task Management System (MERNGinated)
+# Task Management System
 
 A full-stack MERN task management application with modern architecture, featuring secure authentication, comprehensive task management, real-time updates, and analytics dashboard.
 
 [![MERN Stack](https://img.shields.io/badge/MERN-Stack-green)](https://en.wikipedia.org/wiki/MERN_stack)
 [![MongoDB](https://img.shields.io/badge/MongoDB-4.0+-blue.svg)](https://docs.mongodb.com/)
-[![Express](https://img.shields.io/badge/Express-4.18+-black.svg)](https://expressjs.com/)
-[![React](https://img.shields.io/badge/React-18.2+-61DAFB.svg)](https://reactjs.org/)
+[![Express](https://img.shields.io/badge/Express-5.2+-black.svg)](https://expressjs.com/)
+[![React](https://img.shields.io/badge/React-19.2+-61DAFB.svg)](https://reactjs.org/)
 [![Node.js](https://img.shields.io/badge/Node.js-16+-339933.svg)](https://nodejs.org/)
 
 ## 🚀 Features
@@ -35,6 +35,11 @@ A full-stack MERN task management application with modern architecture, featurin
 - **Intuitive UI**: Clean, modern interface with smooth animations
 - **Real-time Feedback**: Loading states, form validation, error handling
 - **Context-aware Navigation**: Smart routing based on authentication status
+
+### Additional Technologies
+- **Rate Limiting** - Express rate limit middleware for API protection
+- **Input Validation** - Express validator for request sanitization
+- **Security Headers** - Helmet middleware for production security
 
 ## 🏗️ Architecture
 
@@ -77,12 +82,12 @@ A full-stack MERN task management application with modern architecture, featurin
 - **Helmet** - Security headers
 
 ### Frontend
-- **React 18** - UI library with hooks
+- **React 19** - UI library with hooks
 - **Vite** - Build tool and dev server
-- **React Router v6** - Client-side routing
-- **TanStack Query** - Data fetching and caching
+- **React Router v7** - Client-side routing
 - **Context API** - Global state management
-- **CSS** - Styling (mobile-responsive)
+- **Tailwind CSS v4** - Utility-first CSS framework
+- **Axios** - HTTP client for API requests
 
 ## 📦 Quick Start
 
@@ -95,7 +100,7 @@ A full-stack MERN task management application with modern architecture, featurin
 
 1. **Clone the repository**
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/chill-czar/budventure.git
    cd budventure
    ```
 
@@ -203,7 +208,7 @@ curl -X POST http://localhost:5000/api/tasks \
     "description": "Write comprehensive API docs",
     "dueDate": "2025-01-15",
     "priority": "high",
-    " tags": ["documentation", "api"]
+    "tags": ["documentation", "api"]
   }'
 ```
 
@@ -288,13 +293,13 @@ NODE_ENV=production
 
 **Client (.env)**
 ```env
-VITE_API_BASE_URL=https://api.yourdomain.com/api
+VITE_API_URL=https://api.yourdomain.com/api
 ```
 
 ### Production Build Commands
 ```bash
 # Backend
-cd server && npm run build
+cd server && npm start
 
 # Frontend
 cd client && npm run build
