@@ -55,29 +55,20 @@ const Signup = () => {
     const { confirmPassword, ...userData } = formData;
 
     try {
-      console.log("Signup: Attempting registration with data:", userData);
       const response = await authAPI.register(userData);
-      console.log("Signup: Registration API response:", response);
 
       // Server returns: { success: true, message, data: { user, token } }
       const { data } = response;
-      console.log("Signup: Extracted data:", data);
 
       if (data && data.token && data.user) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
-        console.log("Signup: Token and user stored in localStorage");
-        console.log("Signup: Auth context login called with user:", data.user);
         login(data.user);
-        console.log("Signup: Navigation to dashboard triggered");
         navigate("/dashboard");
       } else {
-        console.error("Signup: Invalid response structure:", data);
         setError("Invalid response from server");
       }
     } catch (err) {
-      console.error("Signup: Registration error:", err);
-      console.error("Signup: Error response:", err.response);
       setError(err.response?.data?.message || "Registration failed");
     } finally {
       setLoading(false);

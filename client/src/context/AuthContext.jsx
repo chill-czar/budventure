@@ -31,17 +31,13 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = (userData) => {
-    console.log('AuthContext: login method called with:', userData);
     setUser(userData);
-    console.log('AuthContext: user state set to:', userData);
   };
 
   const logout = () => {
-    console.log('AuthContext: logout called, clearing all data');
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
-    console.log('AuthContext: user state cleared, localStorage cleared');
   };
 
   const value = {

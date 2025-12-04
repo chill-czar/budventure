@@ -30,29 +30,20 @@ const Login = () => {
     setError(null);
 
     try {
-      console.log("Attempting login with credentials:", formData);
       const response = await authAPI.login(formData);
-      console.log("Login API response:", response);
 
       // Server returns: { success: true, message, data: { user, token } }
       const { data } = response;
-      console.log("Extracted data:", data);
 
       if (data && data.token && data.user) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("user", JSON.stringify(data.user));
-        console.log("Token and user stored in localStorage");
-        console.log("Auth context login called with user:", data.user);
         login(data.user);
-        console.log("Navigation to dashboard triggered");
         navigate(from, { replace: true });
       } else {
-        console.error("Invalid response structure:", data);
         setError("Invalid response from server");
       }
     } catch (err) {
-      console.error("Login error:", err);
-      console.error("Error response:", err.response);
       setError(err.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
