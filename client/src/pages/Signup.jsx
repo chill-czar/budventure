@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { authAPI } from "../api/auth";
+import { useAuth } from "../hooks/useAuth";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -11,10 +10,8 @@ const Signup = () => {
     confirmPassword: "",
   });
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  const { login } = useAuth();
+  const [formError, setFormError] = useState(null);
+  const { register, isRegistering, registerError } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -26,19 +23,19 @@ const Signup = () => {
 
   const validateForm = () => {
     if (!formData.name.trim()) {
-      setError("Full name is required");
+      setFormError("Full name is required");
       return false;
     }
     if (!formData.email.trim()) {
-      setError("Email address is required");
+      setFormError("Email address is required");
       return false;
     }
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
+      setFormError("Passwords do not match");
       return false;
     }
     if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters long");
+      setFormError("Password must be at least 6 characters long");
       return false;
     }
     return true;
@@ -47,31 +44,17 @@ const Signup = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateForm()) return;
+    setFormError(null);
 
-    setLoading(true);
-    setError(null);
+    if (!validateForm()) return;
 
     const { confirmPassword, ...userData } = formData;
 
     try {
-      const response = await authAPI.register(userData);
-
-      // Server returns: { success: true, message, data: { user, token } }
-      const { data } = response;
-
-      if (data && data.token && data.user) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-        login(data.user);
-        navigate("/dashboard");
-      } else {
-        setError("Invalid response from server");
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || "Registration failed");
-    } finally {
-      setLoading(false);
+      await register(userData);
+      navigate("/dashboard");
+    } catch (error) {
+      // Error handled by hook
     }
   };
 
@@ -94,9 +77,9 @@ const Signup = () => {
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
+          {(formError || registerError) && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-              {error}
+              {formError || (registerError?.message || 'Registration failed')}
             </div>
           )}
 
@@ -166,10 +149,10 @@ const Signup = () => {
           <div>
             <button
               type="submit"
-              disabled={loading}
+              disabled={isRegistering}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Creating account..." : "Create account"}
+              {isRegistering ? "Creating account..." : "Create account"}
             </button>
           </div>
 

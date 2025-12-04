@@ -1,7 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import { authAPI } from "../api/auth";
+import { useAuth } from "../hooks/useAuth";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -9,10 +8,7 @@ const Login = () => {
     password: "",
   });
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-
-  const { login } = useAuth();
+  const { login, isLoggingIn, loginError } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = location.state?.from?.pathname || "/dashboard";
@@ -26,27 +22,12 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
 
     try {
-      const response = await authAPI.login(formData);
-
-      // Server returns: { success: true, message, data: { user, token } }
-      const { data } = response;
-
-      if (data && data.token && data.user) {
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("user", JSON.stringify(data.user));
-        login(data.user);
-        navigate(from, { replace: true });
-      } else {
-        setError("Invalid response from server");
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
-    } finally {
-      setLoading(false);
+      await login(formData);
+      navigate(from, { replace: true });
+    } catch (error) {
+      // Error handled by hook
     }
   };
 
@@ -69,9 +50,9 @@ const Login = () => {
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-          {error && (
+          {loginError && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-              {error}
+              {loginError.message || 'Login failed'}
             </div>
           )}
 
@@ -111,10 +92,10 @@ const Login = () => {
           <div>
             <button
               type="submit"
-              disabled={loading}
+              disabled={isLoggingIn}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {loading ? "Signing in..." : "Sign in"}
+              {isLoggingIn ? "Signing in..." : "Sign in"}
             </button>
           </div>
 

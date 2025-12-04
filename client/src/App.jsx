@@ -1,5 +1,4 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from './context/AuthContext';
 
 // Pages
 import Landing from './pages/Landing';
@@ -10,10 +9,13 @@ import Dashboard from './pages/Dashboard';
 // Components
 import ProtectedRoute from './routes/ProtectedRoute';
 
-function App() {
-  const { loading } = useAuth();
+// Hooks
+import { useAuth } from './hooks/useAuth';
 
-  if (loading) {
+function App() {
+  const { isLoading } = useAuth();
+
+  if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>

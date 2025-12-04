@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { tasksAPI } from '../api/tasks';
+import { useTasks } from '../hooks/useTasks';
 import TaskFormFields from './task-form/TaskFormFields';
 import TaskFormActions from './task-form/TaskFormActions';
 
@@ -13,10 +13,11 @@ const TaskForm = ({ task, onClose }) => {
     tags: ''
   });
 
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { createTask, updateTask, isCreating, isUpdating } = useTasks();
 
   const isEditing = !!task;
+  const isSubmitting = isEditing ? isUpdating(task?._id) : isCreating;
 
   useEffect(() => {
     if (task) {
@@ -47,7 +48,6 @@ const TaskForm = ({ task, onClose }) => {
       return;
     }
 
-    setLoading(true);
     setError(null);
 
     // Prepare data
@@ -60,15 +60,16 @@ const TaskForm = ({ task, onClose }) => {
 
     try {
       if (isEditing) {
-        await tasksAPI.updateTask(task._id, taskData);
+        await updateTask({ taskId: task._id, updates: taskData });
       } else {
-        await tasksAPI.createTask(taskData);
+        await createTask(taskData);
       }
+
+      // ✅ Task appears instantly in UI, then syncs
       onClose();
     } catch (err) {
       setError(err.response?.data?.message || 'Something went wrong');
-    } finally {
-      setLoading(false);
+      // ✅ On failure, optimistic update automatically rolls back
     }
   };
 
@@ -91,7 +92,7 @@ const TaskForm = ({ task, onClose }) => {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <TaskFormFields formData={formData} handleChange={handleChange} />
-          <TaskFormActions onClose={onClose} loading={loading} isEditing={isEditing} />
+          <TaskFormActions onClose={onClose} loading={isSubmitting} isEditing={isEditing} />
         </form>
 
         {error && (
