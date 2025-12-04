@@ -1,6 +1,7 @@
+import React from 'react';
 import TaskList from '../TaskList';
 
-const TaskManagement = ({
+const TaskManagement = React.memo(({
   onCreateTask,
   onEditTask,
   onTaskChange,
@@ -27,6 +28,8 @@ const TaskManagement = ({
       />
     </>
   );
-};
+});
+
+TaskManagement.displayName = 'TaskManagement';
 
 export default TaskManagement;

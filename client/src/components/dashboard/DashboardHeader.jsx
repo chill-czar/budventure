@@ -1,4 +1,6 @@
-const DashboardHeader = ({ user, onLogout }) => {
+import React from 'react';
+
+const DashboardHeader = React.memo(({ user, onLogout }) => {
   return (
     <header className="bg-white shadow">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -19,6 +21,8 @@ const DashboardHeader = ({ user, onLogout }) => {
       </div>
     </header>
   );
-};
+});
+
+DashboardHeader.displayName = 'DashboardHeader';
 
 export default DashboardHeader;

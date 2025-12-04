@@ -1,7 +1,40 @@
 import { useState, useEffect, useCallback } from 'react';
 import React from 'react';
 import { tasksAPI } from '../api/tasks';
+import { useDebouncedValue } from '../hooks/useDebouncedValue';
 import TaskItem from './TaskItem';
+
+const TaskSkeleton = React.memo(() => (
+  <ul className="divide-y divide-gray-200">
+    {[...Array(5)].map((_, i) => (
+      <li key={i} className="p-6">
+        <div className="animate-pulse">
+          <div className="flex justify-between items-start">
+            <div className="flex-1">
+              <div className="flex items-center space-x-2 mb-2">
+                <div className="h-6 bg-gray-200 rounded w-32"></div>
+                <div className="h-5 bg-gray-200 rounded w-16"></div>
+                <div className="h-5 bg-gray-200 rounded w-20"></div>
+              </div>
+              <div className="h-4 bg-gray-200 rounded w-64 mb-2"></div>
+              <div className="flex items-center space-x-4">
+                <div className="h-4 bg-gray-200 rounded w-24"></div>
+                <div className="h-4 bg-gray-200 rounded w-32"></div>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2 ml-4">
+              <div className="h-8 bg-gray-200 rounded w-24"></div>
+              <div className="h-8 bg-gray-200 rounded w-16"></div>
+              <div className="h-8 bg-gray-200 rounded w-16"></div>
+            </div>
+          </div>
+        </div>
+      </li>
+    ))}
+  </ul>
+));
+
+TaskSkeleton.displayName = 'TaskSkeleton';
 
 const TaskList = ({ onEditTask, onTaskChange, refreshTrigger = 0 }) => {
   const [filters, setFilters] = useState({
@@ -16,29 +49,31 @@ const TaskList = ({ onEditTask, onTaskChange, refreshTrigger = 0 }) => {
   const [updatingTaskId, setUpdatingTaskId] = useState(null);
   const [deletingTaskId, setDeletingTaskId] = useState(null);
 
-  const fetchTasks = async () => {
+  const debouncedFilters = useDebouncedValue(filters, 300);
+
+  const fetchTasks = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
-      const response = await tasksAPI.getTasks(filters);
+      const response = await tasksAPI.getTasks(debouncedFilters);
       setTasksData(response);
     } catch (err) {
       setError(err.response?.data?.message || 'Error fetching tasks');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [debouncedFilters]);
 
   // Refresh tasks when refreshTrigger changes
   useEffect(() => {
     if (refreshTrigger > 0) {
       fetchTasks();
     }
-  }, [refreshTrigger]);
+  }, [refreshTrigger, fetchTasks]);
 
   useEffect(() => {
     fetchTasks();
-  }, [filters]);
+  }, [debouncedFilters, fetchTasks]);
 
   const handleFilterChange = useCallback((e) => {
     setFilters({
@@ -49,42 +84,75 @@ const TaskList = ({ onEditTask, onTaskChange, refreshTrigger = 0 }) => {
 
   const handleDeleteTask = useCallback(async (taskId) => {
     if (window.confirm('Are you sure you want to delete this task?')) {
+      const originalTasks = tasksData;
+
+      // Optimistically remove task from UI
+      setTasksData(prev => ({
+        ...prev,
+        data: prev.data.filter(task => task._id !== taskId)
+      }));
+
       try {
         setDeletingTaskId(taskId);
         await tasksAPI.deleteTask(taskId);
-        // Refetch tasks after deletion
-        const response = await tasksAPI.getTasks(filters);
-        setTasksData(response);
         // Notify parent component to refresh stats
         if (onTaskChange) onTaskChange();
       } catch (err) {
+        // Revert optimistic update on error
+        setTasksData(originalTasks);
         alert('Error deleting task: ' + (err.response?.data?.message || 'Unknown error'));
       } finally {
         setDeletingTaskId(null);
       }
     }
-  }, [filters, onTaskChange]);
+  }, [tasksData, onTaskChange]);
 
   const handleStatusChange = useCallback(async (taskId, newStatus) => {
+    const originalTasks = tasksData;
+
+    // Optimistically update task status in UI
+    setTasksData(prev => ({
+      ...prev,
+      data: prev.data.map(task =>
+        task._id === taskId ? { ...task, status: newStatus } : task
+      )
+    }));
+
     try {
       setUpdatingTaskId(taskId);
       await tasksAPI.updateTask(taskId, { status: newStatus });
-      // Refetch tasks after update
-      const response = await tasksAPI.getTasks(filters);
-      setTasksData(response);
       // Notify parent component to refresh stats
       if (onTaskChange) onTaskChange();
     } catch (err) {
+      // Revert optimistic update on error
+      setTasksData(originalTasks);
       alert('Error updating task: ' + (err.response?.data?.message || 'Unknown error'));
     } finally {
       setUpdatingTaskId(null);
     }
-  }, [filters, onTaskChange]);
+  }, [tasksData, onTaskChange]);
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="space-y-6">
+        {/* Filters Skeleton */}
+        <div className="bg-white shadow rounded-lg p-6">
+          <div className="animate-pulse">
+            <div className="h-6 bg-gray-200 rounded w-32 mb-4"></div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i}>
+                  <div className="h-4 bg-gray-200 rounded w-20 mb-2"></div>
+                  <div className="h-10 bg-gray-200 rounded"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+        {/* Tasks Skeleton */}
+        <div className="bg-white shadow rounded-lg">
+          <TaskSkeleton />
+        </div>
       </div>
     );
   }
