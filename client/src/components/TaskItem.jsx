@@ -1,33 +1,42 @@
 import React from 'react';
+import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 
 const TaskItem = React.memo(({ task, onEdit, onDelete, onStatusChange, updatingId, deletingId }) => {
-  const getStatusColor = (status) => {
+  const getStatusVariant = (status) => {
     switch (status) {
       case 'completed':
-        return 'bg-green-100 text-green-800';
+        return 'secondary';
       case 'in-progress':
-        return 'bg-blue-100 text-blue-800';
+        return 'default';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'secondary';
       case 'cancelled':
-        return 'bg-red-100 text-red-800';
+        return 'destructive';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'outline';
     }
   };
 
-  const getPriorityColor = (priority) => {
+  const getPriorityVariant = (priority) => {
     switch (priority) {
       case 'urgent':
-        return 'bg-red-100 text-red-800';
+        return 'destructive';
       case 'high':
-        return 'bg-orange-100 text-orange-800';
+        return 'secondary';
       case 'medium':
-        return 'bg-blue-100 text-blue-800';
+        return 'default';
       case 'low':
-        return 'bg-gray-100 text-gray-800';
+        return 'outline';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'outline';
     }
   };
 
@@ -35,14 +44,14 @@ const TaskItem = React.memo(({ task, onEdit, onDelete, onStatusChange, updatingI
     <li className="p-6 hover:bg-gray-50">
       <div className="flex justify-between items-start">
         <div className="flex-1">
-          <div className="flex items-center space-x-2">
-            <h3 className="text-lg font-medium text-gray-900">{task.title}</h3>
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>
+          <div className="flex items-center gap-2">
+            <h3 className="text-lg font-medium">{task.title}</h3>
+            <Badge variant={getPriorityVariant(task.priority)}>
               {task.priority}
-            </span>
-            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
+            </Badge>
+            <Badge variant={getStatusVariant(task.status)}>
               {task.status}
-            </span>
+            </Badge>
           </div>
           <p className="mt-1 text-sm text-gray-600">{task.description}</p>
           <div className="mt-2 flex items-center text-sm text-gray-500">
@@ -52,31 +61,37 @@ const TaskItem = React.memo(({ task, onEdit, onDelete, onStatusChange, updatingI
             )}
           </div>
         </div>
-        <div className="flex items-center space-x-2 ml-4">
-          <select
+        <div className="flex items-center gap-2">
+          <Select
             value={task.status}
-            onChange={(e) => onStatusChange(task._id, e.target.value)}
+            onValueChange={(value) => onStatusChange(task._id, value)}
             disabled={updatingId === task._id}
-            className="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50"
           >
-            <option value="pending">Pending</option>
-            <option value="in-progress">In Progress</option>
-            <option value="completed">Completed</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
-          <button
+            <SelectTrigger className="w-32 h-8">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="in-progress">In Progress</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="cancelled">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => onEdit(task)}
-            className="text-blue-600 hover:text-blue-900 text-sm font-medium"
           >
             Edit
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="destructive"
+            size="sm"
             onClick={() => onDelete(task._id)}
             disabled={deletingId === task._id}
-            className="text-red-600 hover:text-red-900 text-sm font-medium disabled:opacity-50"
           >
             {deletingId === task._id ? 'Deleting...' : 'Delete'}
-          </button>
+          </Button>
         </div>
       </div>
     </li>

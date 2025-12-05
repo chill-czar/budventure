@@ -1,87 +1,158 @@
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { CalendarIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+
 const TaskFormFields = ({ formData, handleChange }) => {
+  const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(
+    formData.dueDate ? new Date(formData.dueDate) : undefined
+  );
+
+  // Sync selectedDate with formData when component receives new props
+  useEffect(() => {
+    if (formData.dueDate) {
+      setSelectedDate(new Date(formData.dueDate));
+    } else {
+      setSelectedDate(undefined);
+    }
+  }, [formData.dueDate]);
+
+  // Handle date selection
+  const handleDateSelect = (date) => {
+    if (date) {
+      setSelectedDate(date);
+      // Format date as YYYY-MM-DD for the form
+      const formattedDate = date.toISOString().split('T')[0];
+      handleChange({ target: { name: 'dueDate', value: formattedDate } });
+    }
+    setDatePickerOpen(false);
+  };
+
+  const formattedDisplayDate = selectedDate
+    ? selectedDate.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+      })
+    : 'Pick a date';
+
   return (
     <>
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Title *</label>
-        <input
-          type="text"
+      <div className="space-y-2">
+        <Label htmlFor="title">Title *</Label>
+        <Input
+          id="title"
           name="title"
+          type="text"
           value={formData.title}
           onChange={handleChange}
           required
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
           placeholder="Enter task title..."
         />
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Description *</label>
-        <textarea
+      <div className="space-y-2">
+        <Label htmlFor="description">Description *</Label>
+        <Textarea
+          id="description"
           name="description"
           value={formData.description}
           onChange={handleChange}
           required
           rows={3}
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
           placeholder="Enter task description..."
         />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Status</label>
-          <select
-            name="status"
+        <div className="space-y-2">
+          <Label>Status</Label>
+          <Select
             value={formData.status}
-            onChange={handleChange}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            onValueChange={(value) => handleChange({ target: { name: 'status', value } })}
           >
-            <option value="pending">Pending</option>
-            <option value="in-progress">In Progress</option>
-            <option value="completed">Completed</option>
-            <option value="cancelled">Cancelled</option>
-          </select>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="pending">Pending</SelectItem>
+              <SelectItem value="in-progress">In Progress</SelectItem>
+              <SelectItem value="completed">Completed</SelectItem>
+              <SelectItem value="cancelled">Cancelled</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700">Priority</label>
-          <select
-            name="priority"
+        <div className="space-y-2">
+          <Label>Priority</Label>
+          <Select
             value={formData.priority}
-            onChange={handleChange}
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+            onValueChange={(value) => handleChange({ target: { name: 'priority', value } })}
           >
-            <option value="low">Low</option>
-            <option value="medium">Medium</option>
-            <option value="high">High</option>
-            <option value="urgent">Urgent</option>
-          </select>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select priority" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="low">Low</SelectItem>
+              <SelectItem value="medium">Medium</SelectItem>
+              <SelectItem value="high">High</SelectItem>
+              <SelectItem value="urgent">Urgent</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Due Date *</label>
-        <input
-          type="date"
-          name="dueDate"
-          value={formData.dueDate}
-          onChange={handleChange}
-          required
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-        />
+      <div className="space-y-2">
+        <Label htmlFor="dueDate">Due Date *</Label>
+        <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              id="dueDate"
+              variant="outline"
+              className="w-full justify-start text-left font-normal"
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {formattedDisplayDate}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0">
+            <Calendar
+              mode="single"
+              selected={selectedDate}
+              onSelect={handleDateSelect}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
       </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700">Tags (optional)</label>
-        <input
-          type="text"
+      <div className="space-y-2">
+        <Label htmlFor="tags">Tags (optional)</Label>
+        <Input
+          id="tags"
           name="tags"
+          type="text"
           value={formData.tags}
           onChange={handleChange}
-          className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
           placeholder="work, urgent, meeting (comma separated)"
         />
-        <p className="mt-1 text-sm text-gray-500">Separate multiple tags with commas</p>
+        <p className="text-sm text-muted-foreground">Separate multiple tags with commas</p>
       </div>
     </>
   );

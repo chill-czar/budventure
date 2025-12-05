@@ -2,6 +2,20 @@ import { useState } from "react";
 import React from "react";
 import { useTasks } from "../hooks/useTasks";
 import TaskItem from "./TaskItem";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AlertTriangle } from "lucide-react";
 
 const TaskSkeleton = React.memo(() => (
   <ul className="divide-y divide-gray-200">
@@ -61,12 +75,11 @@ const TaskList = ({ onEditTask }) => {
     pagination,
   } = useTasks(filters);
 
-  const handleFilterChange = (e) => {
-    const { name, value } = e.target;
-    setFilters({
-      ...filters,
+  const handleFilterChange = (name, value) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
       [name]: value,
-    });
+    }));
 
     // Reset to page 1 when filters change (except limit)
     if (name !== 'limit') {
@@ -116,172 +129,208 @@ const TaskList = ({ onEditTask }) => {
     return (
       <div className="space-y-6">
         {/* Filters Skeleton */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <div className="animate-pulse">
-            <div className="h-6 bg-gray-200 rounded w-32 mb-4"></div>
+        <Card>
+          <CardContent className="p-6">
+            <Skeleton className="h-6 w-32 mb-4" />
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              {[...Array(3)].map((_, i) => (
-                <div key={i}>
-                  <div className="h-4 bg-gray-200 rounded w-20 mb-2"></div>
-                  <div className="h-10 bg-gray-200 rounded"></div>
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="space-y-2">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-9 w-full" />
                 </div>
               ))}
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
+
         {/* Tasks Skeleton */}
-        <div className="bg-white shadow rounded-lg">
-          <TaskSkeleton />
-        </div>
+        <Card>
+          <CardContent className="p-0">
+            <ul className="divide-y">
+              {[...Array(5)].map((_, i) => (
+                <li key={i} className="p-6">
+                  <div className="flex justify-between items-start gap-4">
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="h-5 w-32" />
+                        <Skeleton className="h-4 w-16" />
+                        <Skeleton className="h-4 w-20" />
+                      </div>
+                      <Skeleton className="h-4 w-64" />
+                      <div className="flex items-center gap-4">
+                        <Skeleton className="h-3 w-20" />
+                        <Skeleton className="h-3 w-32" />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-8 w-20" />
+                      <Skeleton className="h-8 w-12" />
+                      <Skeleton className="h-8 w-14" />
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-        {error.message || "Error fetching tasks"}
-      </div>
+      <Alert variant="destructive">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>
+          {error.message || "Error fetching tasks"}
+        </AlertDescription>
+      </Alert>
     );
   }
 
   return (
     <div className="space-y-6">
       {/* Filters */}
-      <div className="bg-white shadow rounded-lg p-6">
-        <h3 className="text-lg font-medium text-gray-900 mb-4">Filter Tasks</h3>
+      <Card>
+        <CardContent className="p-6">
+          <h3 className="text-lg font-medium mb-4">Filter Tasks</h3>
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Status
-            </label>
-            <select
-              name="status"
+          <div className="space-y-2">
+            <Label htmlFor="status">Status</Label>
+            <Select
               value={filters.status}
-              onChange={handleFilterChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              onValueChange={(value) => handleFilterChange('status', value)}
             >
-              <option value="">All Status</option>
-              <option value="pending">Pending</option>
-              <option value="in-progress">In Progress</option>
-              <option value="completed">Completed</option>
-              <option value="cancelled">Cancelled</option>
-            </select>
+              <SelectTrigger id="status">
+                <SelectValue placeholder="All Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="in-progress">In Progress</SelectItem>
+                <SelectItem value="completed">Completed</SelectItem>
+                <SelectItem value="cancelled">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Priority
-            </label>
-            <select
-              name="priority"
+          <div className="space-y-2">
+            <Label htmlFor="priority">Priority</Label>
+            <Select
               value={filters.priority}
-              onChange={handleFilterChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              onValueChange={(value) => handleFilterChange('priority', value)}
             >
-              <option value="">All Priority</option>
-              <option value="low">Low</option>
-              <option value="medium">Medium</option>
-              <option value="high">High</option>
-              <option value="urgent">Urgent</option>
-            </select>
+              <SelectTrigger id="priority">
+                <SelectValue placeholder="All Priority" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="low">Low</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="urgent">Urgent</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Search
-            </label>
-            <input
-              type="text"
+          <div className="space-y-2">
+            <Label htmlFor="search">Search</Label>
+            <Input
+              id="search"
               name="search"
+              type="text"
               value={filters.search}
-              onChange={handleFilterChange}
+              onChange={(e) => handleFilterChange('search', e.target.value)}
               placeholder="Search tasks..."
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700">
-              Items per page
-            </label>
-            <select
-              name="limit"
+          <div className="space-y-2">
+            <Label htmlFor="limit">Items per page</Label>
+            <Select
               value={filters.limit}
-              onChange={handleFilterChange}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              onValueChange={(value) => handleFilterChange('limit', value)}
             >
-              <option value="5">5</option>
-              <option value="10">10</option>
-              <option value="25">25</option>
-              <option value="50">50</option>
-              <option value="100">100</option>
-            </select>
+              <SelectTrigger id="limit">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="5">5</SelectItem>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="25">25</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+                <SelectItem value="100">100</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
-      </div>
+      </CardContent>
+    </Card>
 
       {/* Tasks List - Uses paginated results */}
-      <div className="bg-white shadow rounded-lg">
-        {paginatedTasks.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">
-            {tasks.length === 0
-              ? "No tasks found. Create your first task!"
-              : "No tasks match your filters."}
-          </div>
-        ) : (
-          <ul className="divide-y divide-gray-200">
-            {paginatedTasks.map(
-              (
-                task // ✅ Render paginated tasks - instant!
-              ) => (
-                <TaskItem
-                  key={task._id}
-                  task={task}
-                  onEdit={onEditTask}
-                  onDelete={handleDeleteTask}
-                  onStatusChange={handleStatusChange}
-                  updating={isUpdating(task._id)}
-                  deleting={isDeleting(task._id)}
-                />
-              )
-            )}
-          </ul>
-        )}
-      </div>
+      <Card>
+        <CardContent className="p-0">
+          {paginatedTasks.length === 0 ? (
+            <div className="p-6 text-center text-muted-foreground">
+              {tasks.length === 0
+                ? "No tasks found. Create your first task!"
+                : "No tasks match your filters."}
+            </div>
+          ) : (
+            <ul className="divide-y">
+              {paginatedTasks.map(
+                (
+                  task // ✅ Render paginated tasks - instant!
+                ) => (
+                  <TaskItem
+                    key={task._id}
+                    task={task}
+                    onEdit={onEditTask}
+                    onDelete={handleDeleteTask}
+                    onStatusChange={handleStatusChange}
+                    updating={isUpdating(task._id)}
+                    deleting={isDeleting(task._id)}
+                  />
+                )
+              )}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Pagination Controls */}
       {totalFilteredItems > 0 && totalPages > 1 && (
-        <div className="flex items-center justify-center mt-6 px-2">
-          {/* Previous Button */}
-          <button
+        <div className="flex items-center justify-center mt-6 px-2 gap-4">
+          <Button
+            variant="outline"
             onClick={goToPrevPage}
             disabled={currentPage === 1}
-            className="px-4 py-2 text-sm border rounded-md mr-4 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
           >
             Previous
-          </button>
+          </Button>
 
-          {/* Page Numbers */}
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-700">Page</span>
-            <select
-              value={currentPage}
-              onChange={(e) => goToPage(parseInt(e.target.value))}
-              className="px-3 py-2 text-sm border rounded-md bg-white"
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Page</span>
+            <Select
+              value={currentPage.toString()}
+              onValueChange={(value) => goToPage(parseInt(value))}
             >
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
-                <option key={page} value={page}>{page}</option>
-              ))}
-            </select>
-            <span className="text-sm text-gray-700">of {totalPages}</span>
+              <SelectTrigger className="w-20">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <SelectItem key={page} value={page.toString()}>
+                    {page}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <span className="text-sm text-muted-foreground">of {totalPages}</span>
           </div>
 
-          {/* Next Button */}
-          <button
+          <Button
+            variant="outline"
             onClick={goToNextPage}
             disabled={currentPage === totalPages}
-            className="px-4 py-2 text-sm border rounded-md ml-4 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
           >
             Next
-          </button>
+          </Button>
         </div>
       )}
 

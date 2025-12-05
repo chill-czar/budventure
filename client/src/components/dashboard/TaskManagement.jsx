@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import TaskList from '../TaskList';
 import TaskForm from '../TaskForm';
+import { Button } from '../ui/button';
 
 const TaskManagement = React.memo(() => {
   const [showTaskForm, setShowTaskForm] = useState(false);
@@ -26,12 +27,9 @@ const TaskManagement = React.memo(() => {
       {/* Action Buttons */}
       <div className="mb-8 flex justify-between items-center">
         <h2 className="text-2xl font-bold text-gray-900">My Tasks</h2>
-        <button
-          onClick={handleCreateTask}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-        >
+        <Button onClick={handleCreateTask}>
           + New Task
-        </button>
+        </Button>
       </div>
 
       {/* Task List */}
