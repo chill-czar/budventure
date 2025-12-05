@@ -82,7 +82,7 @@ const Signup = () => {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {(formError || registerError) && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-              {formError || (registerError?.message || 'Registration failed')}
+              {formError || (registerError?.response?.data?.message || registerError?.message || 'Registration failed')}
             </div>
           )}
 

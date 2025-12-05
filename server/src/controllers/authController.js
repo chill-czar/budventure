@@ -6,33 +6,48 @@ const { generateToken } = require('../utils/jwt');
 const register = async (req, res) => {
   const { name, email, password } = req.body;
 
+  console.log('Registration attempt:', { name, email, password: '[HIDDEN]' });
+
   const userExists = await User.findOne({ email });
+  console.log('User exists check result:', !!userExists);
   if (userExists) {
+    console.log('User already exists, returning 400');
     return sendError(res, 400, 'User already exists');
   }
 
-  const user = await User.create({
-    name,
-    email,
-    password
-  });
-
-  if (user) {
-    const userData = {
-      _id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-      createdAt: user.createdAt
-    };
-
-    const token = generateToken({ id: user._id });
-
-    sendSuccess(res, 201, 'User registered successfully', {
-      user: userData,
-      token
+  try {
+    console.log('Creating user...');
+    const user = await User.create({
+      name,
+      email,
+      password
     });
-  } else {
+    console.log('User creation result:', !!user);
+
+    if (user) {
+      const userData = {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        createdAt: user.createdAt
+      };
+
+      console.log('Generating token...');
+      const token = generateToken({ id: user._id });
+      console.log('Token generated successfully');
+
+      sendSuccess(res, 201, 'User registered successfully', {
+        user: userData,
+        token
+      });
+    } else {
+      console.log('User creation returned falsy');
+      sendError(res, 400, 'Invalid user data');
+    }
+  } catch (error) {
+    console.error('User creation error:', error.message);
+    console.error('Error stack:', error.stack);
     sendError(res, 400, 'Invalid user data');
   }
 };

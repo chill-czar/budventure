@@ -55,7 +55,7 @@ const Login = () => {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {loginError && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-              {loginError.message || 'Login failed'}
+              {loginError?.response?.data?.message || loginError?.message || 'Login failed'}
             </div>
           )}
 
